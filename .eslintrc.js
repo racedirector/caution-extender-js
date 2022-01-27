@@ -13,8 +13,6 @@ module.exports = {
   extends: [
     "airbnb-base",
     "airbnb-typescript/base",
-    "plugin:@typescript-eslint/eslint-recommended",
-    "plugin:@typescript-eslint/recommended-requiring-type-checking",
     "plugin:import/typescript",
     "plugin:prettier/recommended",
     "prettier",
@@ -31,7 +29,6 @@ module.exports = {
   },
 
   rules: {
-    "no-console": 2,
     "no-void": [2, { "allowAsStatement": true }],
     "@typescript-eslint/no-floating-promises": [2, { "ignoreVoid": true }],
     "@typescript-eslint/naming-convention": [
@@ -59,12 +56,5 @@ module.exports = {
         "prefix": ["is", "should", "has", "can", "did", "will", "show", "hide"]
       },
     ],
-    "@typescript-eslint/no-unsafe-assignment": 1,
   },
-
-  settings: {
-    "import/parsers": {
-      "@typescript-eslint/parser": [".ts", ".tsx"]
-    },
-  }
 };

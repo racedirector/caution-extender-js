@@ -1,157 +1,165 @@
-const MAX_FPS = 60;
-const MIN_FPS = 1;
+import {
+  iRacingData,
+  iRacingSocket,
+  iRacingSocketEvents,
+} from "iracing-socket-js";
+import { EventEmitter } from "events";
+import { pickBy } from "lodash";
+import {
+  checkForIncidents,
+  DriverIndex,
+  getTelemetryIncidents,
+  indexDriverList,
+  telemetryFromData,
+  TelemetryIncidentMeta,
+} from "utils";
 
-const noop = () => {};
-
-export interface iRacingData {
-  [key: string]: any;
+export enum RaceDirectorEvents {
+  Caution = "caution",
+  Incident = "incident",
 }
 
-export interface iRacingSocketOptions {
-  requestParameters: string[];
-  requestParametersOnce?: string[];
-  fps?: number;
+export enum IncidentType {
+  Sim = "sim",
+  Telemetry = "telemetry",
+}
+
+export interface Incident {
+  type: IncidentType;
+  carIdx: number;
+  driverId: string;
+  lapPercentage: number;
+  simTime: string;
+  sessionTime: string;
+  value: number;
+  context?: Record<string, any>;
+}
+
+const TELEMETRY_KEYS = [
+  "CarIdxGear",
+  "CarIdxLapDistPct",
+  "CarIdxOnPitRoad",
+  "CarIdxRPM",
+  "CarIdxTrackSurface",
+  "CarIdxTrackSurfaceMaterial",
+];
+
+export interface RaceDirectorOptions {
   server: string;
-  readIBT?: boolean;
-  reconnectTimeoutInterval?: number;
-  onSocketConnect?: () => void;
-  onSocketDisconnect?: () => void;
-  onConnect?: () => void;
-  onDisconnect?: () => void;
-  onUpdate?: (keys: string[]) => void;
 }
 
-export class iRacingSocket {
-  private socket: WebSocket;
+export class RaceDirector extends EventEmitter {
+  private socket: iRacingSocket;
 
-  private server: string;
+  private driverIndex: DriverIndex = {};
 
-  private firstConnection: boolean;
+  private trackLength: number = -1;
 
-  private reconnectTimeout: number = null;
+  private previousData: iRacingData;
 
-  readonly requestParameters: string[];
+  constructor(options?: RaceDirectorOptions) {
+    super();
 
-  readonly requestParametersOnce: string[];
+    this.on(RaceDirectorEvents.Incident, (driver, count) => {
+      console.log(`Driver ${driver.UserID} had an incident worth ${count}`);
+    });
 
-  readonly fps: number;
+    // eslint-disable-next-line new-cap
+    this.socket = new iRacingSocket({
+      server: options.server,
+      requestParameters: [
+        ...TELEMETRY_KEYS,
+        "DriverInfo",
+        "RaceLaps",
+        "SessionFlags",
+        "SessionInfo",
+        "SessionNum",
+        "SessionState",
+        "SessionTick",
+        "SessionTime",
+        "WeekendInfo",
+      ],
+    });
 
-  readonly readIBT: boolean;
-
-  data: iRacingData = {};
-
-  reconnectTimeoutInterval: number;
-
-  connected: boolean;
-
-  onSocketConnect: () => void;
-
-  onSocketDisconnect: () => void;
-
-  onConnect: () => void;
-
-  onDisconnect: () => void;
-
-  onUpdate: (keys: string[]) => void;
-
-  constructor(options?: iRacingSocketOptions) {
-    this.onSocketConnect = options.onSocketConnect || noop;
-    this.onSocketDisconnect = options.onSocketDisconnect || noop;
-    this.onConnect = options.onConnect || noop;
-    this.onDisconnect = options.onDisconnect || noop;
-    this.onUpdate = options.onUpdate || noop;
-
-    this.server = options.server;
-    this.requestParameters = options.requestParameters;
-    this.fps = Math.min(Math.max(options.fps || 1, MIN_FPS), MAX_FPS);
-    this.readIBT = options.readIBT || false;
-    this.reconnectTimeoutInterval = options.reconnectTimeoutInterval || 2000;
-    this.connected = false;
-    this.firstConnection = true;
-
-    this.open();
+    this.socket.addListener(iRacingSocketEvents.Update, this.onUpdate);
   }
 
-  open = () => {
-    this.socket = new WebSocket(`ws://${this.server}/ws`);
-    this.socket.addEventListener("open", this.onOpen);
-    this.socket.addEventListener("message", this.onMessage);
-    this.socket.addEventListener("close", this.onClose);
-  };
+  private onUpdate = (keys: string[]) => {
+    const newData = this.socket.data;
+    const updates = pickBy(newData, (value, key) => keys.includes(key));
 
-  close = () => {
-    this.socket.close();
-  };
-
-  sendCommand = (command, ...args) => {
-    this.send({
-      command,
-      args,
-    });
-  };
-
-  send = (payload) => {
-    this.socket.send(JSON.stringify(payload));
-  };
-
-  private onOpen = () => {
-    this.onSocketConnect();
-
-    if (this.reconnectTimeout) {
-      clearTimeout(this.reconnectTimeout);
+    if (updates.DriverInfo) {
+      const driverIndex = indexDriverList(newData.DriverInfo?.Drivers || []);
+      this.checkSimIncidents();
+      this.driverIndex = driverIndex;
     }
 
-    this.send({
-      fps: this.fps,
-      readIbt: this.readIBT,
-      requestParams: this.requestParameters,
-      requestParamsOnce: this.requestParametersOnce,
-    });
-  };
-
-  private onMessage = ({ data: eventData = "" }) => {
-    // Normalize the JSON
-    const normalizedEventData = eventData.replace(/\bNaN\b/g, "null");
-    const { data = {} } = JSON.parse(normalizedEventData);
-    // TOOD: Lifecycle?
-
-    // On first time connection...
-    if (this.firstConnection && !this.connected) {
-      this.firstConnection = false;
-      this.connected = true;
-      this.onConnect();
+    if (updates.WeekendInfo) {
+      const trackLength =
+        updates.WeekendInfo?.TrackLength?.replace(" km", "") || null;
+      this.trackLength = trackLength ? parseFloat(trackLength) * 1000 : -1;
     }
 
-    // Update data
-    if (data) {
-      const keys: string[] = [];
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
-      Object.entries(data).forEach(([key, value]) => {
-        keys.push(key);
-        this.data[key] = value;
+    const carIndexes = Object.keys(this.driverIndex)
+      .map((keyString) => parseInt(keyString, 10))
+      .filter(Boolean);
+
+    this.checkTelemetryIncidents(newData, carIndexes, this.trackLength);
+    this.previousData = newData;
+  };
+
+  private checkTelemetryIncidents = (
+    data: iRacingData,
+    indexes: number[],
+    trackLength: number,
+  ) => {
+    indexes
+      .flatMap((carIndex): TelemetryIncidentMeta & { carIndex: number } => {
+        const previousTelemetry = telemetryFromData(
+          this.previousData,
+          carIndex,
+        );
+
+        if (previousTelemetry) {
+          const currentTelemetry = telemetryFromData(data, carIndex);
+
+          return {
+            carIndex,
+            ...getTelemetryIncidents(
+              currentTelemetry,
+              previousTelemetry,
+              trackLength,
+            ),
+          };
+        }
+
+        return null;
+      })
+      .filter(({ stationary, reverse, slow, wrongWay, onTrack }) => {
+        return stationary || slow || (wrongWay && onTrack) || reverse;
       });
-      this.onUpdate(keys);
-    }
   };
 
-  private onClose = () => {
-    this.onSocketDisconnect();
+  private checkSimIncidents = (data: iRacingData) => {
+    const previousDriverIndex = indexDriverList(
+      this.previousData?.DriverInfo?.Drivers || [],
+    );
 
-    if (this.socket) {
-      this.socket.removeEventListener("open", this.onOpen);
-      this.socket.removeEventListener("message", this.onMessage);
-      this.socket.removeEventListener("close", this.onClose);
-    }
-
-    if (this.connected) {
-      this.connected = false;
-      this.onDisconnect();
-    }
-
-    this.reconnectTimeout = setTimeout(() => {
-      this.open();
-    }, this.reconnectTimeoutInterval);
+    checkForIncidents(
+      previousDriverIndex,
+      this.driverIndex,
+      (driver, carIndex, count) => {
+        const incident: Incident = {
+          type: IncidentType.Sim,
+          carIdx: carIndex,
+          driverId: driver.UserID,
+          lapPercentage: data.CarIdxLapDistPct?.[carIndex],
+          value: count,
+        };
+        this.emit(RaceDirectorEvents.Incident);
+      },
+    );
   };
 }
 
-export default iRacingSocket;
+export default RaceDirector;
