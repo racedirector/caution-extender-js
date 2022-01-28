@@ -1,0 +1,28 @@
+export declare enum Flags {
+    Checkered = 1,
+    White = 2,
+    Green = 4,
+    Yellow = 8,
+    Red = 16,
+    Blue = 32,
+    Debris = 64,
+    Crossed = 128,
+    YellowWaving = 256,
+    OneLapToGreen = 512,
+    GreenHeld = 1024,
+    TenToGo = 2048,
+    FiveToGo = 4096,
+    RandomWaving = 8192,
+    Caution = 16384,
+    CautionWaving = 32768,
+    Black = 65536,
+    Disqualify = 131072,
+    Servicible = 262144,
+    Furled = 524288,
+    Repair = 1048576,
+    StartHidden = 268435456,
+    StartReady = 536870912,
+    StartSet = 1073741824,
+    StartGo = 2147483648
+}
+export declare const isRaceSession: (data: any) => boolean;

@@ -843,6 +843,11 @@ esutils@^2.0.2:
   resolved "http://npm.wellth-dev.com/esutils/-/esutils-2.0.3.tgz#74d2eb4de0b8da1293711910d50775b9b710ef64"
   integrity sha512-kVscqXk4OCp68SZ0dkgEKVi6/8ij300KBWTJq32P/dYeWTSwK41WyTxalN1eRmA5Z9UU/LX9D7FWSmV9SAYx6g==
 
+events@^3.3.0:
+  version "3.3.0"
+  resolved "http://npm.wellth-dev.com/events/-/events-3.3.0.tgz#31a95ad0a924e2d2c419a813aeb2c4e878ea7400"
+  integrity sha512-mQw+2fkQbALzQ7V0MY0IqdnXNOeTtP4r0lN9z7AAawCXgqea7bDii20AYrIBrFd/Hx0M2Ocz6S111CaFkUcb0Q==
+
 fast-deep-equal@^3.1.1, fast-deep-equal@^3.1.3:
   version "3.1.3"
   resolved "http://npm.wellth-dev.com/fast-deep-equal/-/fast-deep-equal-3.1.3.tgz#3a7d56b559d6cbc3eb512325244e619a65c6c525"
@@ -1083,10 +1088,8 @@ internal-slot@^1.0.3:
     has "^1.0.3"
     side-channel "^1.0.4"
 
-iracing-socket-js@^0.0.2:
+"iracing-socket-js@file:../iracing-socket-js":
   version "0.0.2"
-  resolved "http://npm.wellth-dev.com/iracing-socket-js/-/iracing-socket-js-0.0.2.tgz#ada2f3c61be128dc056c66074541625d7a10f071"
-  integrity sha512-olPCAZsFMoDjL6eqs9bu3FaECCS1mZ93T/wpz+Lubi5qlF/wHxEgdqVqpX1y4wvgolZwiodNc+PSCr6TdGzjHA==
 
 is-bigint@^1.0.1:
   version "1.0.4"

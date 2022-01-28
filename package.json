@@ -1,8 +1,8 @@
 {
-  "name": "iracing-socket-js",
-  "version": "0.0.2",
-  "description": "iRacingBrowserApps/Kapps socket adpater for iRacing",
-  "repository": "git@github.com:racedirector/iracing-socket-js.git",
+  "name": "caution-extender-js",
+  "version": "0.0.1",
+  "description": "Monitors the iRacing flags and will automatically extend cautions based on configuration.",
+  "repository": "git@github.com:racedirector/caution-extender-js.git",
   "author": "Justin Makaila <justinmakaila@gmail.com>",
   "license": "MIT",
   "main": "lib/index.js",
@@ -20,11 +20,11 @@
     "prettier": "prettier --write \"src/**/*.ts\""
   },
   "dependencies": {
-    "iracing-socket-js": "^0.0.2",
-    "lodash":"^4.17.21"
+    "iracing-socket-js": "file:../iracing-socket-js/",
+    "lodash": "^4.17.21"
   },
   "devDependencies": {
-    "@types/lodash":"^4.14.178",
+    "@types/lodash": "^4.14.178",
     "@typescript-eslint/eslint-plugin": "5.10.1",
     "@typescript-eslint/parser": "5.10.1",
     "eslint": "8.7.0",
