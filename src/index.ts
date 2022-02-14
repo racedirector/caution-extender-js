@@ -1,5 +1,9 @@
 /* eslint-disable no-bitwise */
-import { iRacingSocket, iRacingSocketEvents } from "iracing-socket-js";
+import {
+  iRacingSocket,
+  iRacingSocketEvents,
+  iRacingSocketOptions,
+} from "iracing-socket-js";
 import { EventEmitter } from "events";
 
 export const IRACING_REQUEST_PARAMS = [
@@ -26,8 +30,7 @@ const flagHasCautionWaving = (flagValue: number): boolean =>
   !!(flagValue & CAUTION_WAVING_FLAG);
 
 export interface CautionExtenderOptions {
-  server?: string;
-  socket?: iRacingSocket;
+  socket?: iRacingSocket | iRacingSocketOptions;
 }
 
 export class CautionExtender extends EventEmitter {
@@ -39,13 +42,9 @@ export class CautionExtender extends EventEmitter {
     super();
 
     this.socket =
-      options.socket ||
-      // eslint-disable-next-line new-cap
-      new iRacingSocket({
-        server: options.server,
-        fps: 1,
-        requestParameters: IRACING_REQUEST_PARAMS,
-      });
+      options.socket instanceof iRacingSocket
+        ? options.socket
+        : new iRacingSocket(options.socket);
 
     this.socket.on(iRacingSocketEvents.Update, this.onUpdate);
   }
