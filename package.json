@@ -1,6 +1,6 @@
 {
   "name": "caution-extender-js",
-  "version": "0.0.4",
+  "version": "0.0.5",
   "description": "Monitors the iRacing flags and will automatically extend cautions based on configuration.",
   "repository": "git@github.com:racedirector/caution-extender-js.git",
   "author": "Justin Makaila <justinmakaila@gmail.com>",
