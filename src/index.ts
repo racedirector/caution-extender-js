@@ -1,8 +1,8 @@
-/* eslint-disable no-bitwise */
 import {
   iRacingSocket,
   iRacingSocketEvents,
   iRacingSocketOptions,
+  Flags,
 } from "iracing-socket-js";
 import { EventEmitter } from "events";
 
@@ -18,16 +18,14 @@ export enum CautionExtenderEvents {
   Extension = "extension",
 }
 
-const CAUTION_FLAG = 0x4000;
-const CAUTION_WAVING_FLAG = 0x8000;
-const ONE_TO_GREEN_FLAG = 0x0200;
+const flagHasCaution = (flagValue: number) =>
+  (flagValue & Flags.Caution) === Flags.Caution;
+const flagHasCautionWaving = (flagValue: number) =>
+  (flagValue & Flags.CautionWaving) === Flags.CautionWaving;
 
-const flagHasCaution = (flagValue: number): boolean =>
-  !!(flagValue & CAUTION_FLAG);
-const flagHasOneToGreen = (flagValue: number): boolean =>
-  !!(flagValue & ONE_TO_GREEN_FLAG);
-const flagHasCautionWaving = (flagValue: number): boolean =>
-  !!(flagValue & CAUTION_WAVING_FLAG);
+const EXTENSION_REQUIRED_FLAGS = Flags.OneLapToGreen | Flags.Caution;
+const extensionRequired = (flagValue: number) =>
+  (flagValue & EXTENSION_REQUIRED_FLAGS) === EXTENSION_REQUIRED_FLAGS;
 
 export interface CautionExtenderOptions {
   socket?: iRacingSocket | iRacingSocketOptions;
@@ -38,13 +36,11 @@ export class CautionExtender extends EventEmitter {
 
   private previousFlags: number;
 
-  constructor(options: CautionExtenderOptions) {
+  constructor({ socket }: CautionExtenderOptions) {
     super();
 
     this.socket =
-      options.socket instanceof iRacingSocket
-        ? options.socket
-        : new iRacingSocket(options.socket);
+      socket instanceof iRacingSocket ? socket : new iRacingSocket(socket);
 
     this.socket.on(iRacingSocketEvents.Update, this.onUpdate);
   }
@@ -65,7 +61,7 @@ export class CautionExtender extends EventEmitter {
       }
 
       // If it's a race session, and we get one to green under caution, emit extension event.
-      if (flagHasOneToGreen(flags) && flagHasCaution(flags)) {
+      if (extensionRequired(flags)) {
         this.emit(CautionExtenderEvents.Extension);
       }
     }

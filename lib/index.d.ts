@@ -12,7 +12,7 @@ export interface CautionExtenderOptions {
 export declare class CautionExtender extends EventEmitter {
     private socket;
     private previousFlags;
-    constructor(options: CautionExtenderOptions);
+    constructor({ socket }: CautionExtenderOptions);
     private onUpdate;
 }
 export default CautionExtender;

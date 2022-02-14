@@ -30,7 +30,7 @@ module.exports = {
 
   rules: {
     "no-void": [2, { "allowAsStatement": true }],
-    "new-cap": [2, {"newIsCapExceptions": ["iRacing"]}]
+    "new-cap": [2, {"newIsCapExceptions": ["iRacingSocket"]}],
     "@typescript-eslint/no-floating-promises": [2, { "ignoreVoid": true }],
     "@typescript-eslint/naming-convention": [
       2,
@@ -57,5 +57,6 @@ module.exports = {
         "prefix": ["is", "should", "has", "can", "did", "will", "show", "hide"]
       },
     ],
+    "no-bitwise": 0,
   },
 };
