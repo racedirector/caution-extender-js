@@ -58,10 +58,7 @@ export class CautionExtender extends EventEmitter {
       } = {},
     } = this.socket;
 
-    const sessionName =
-      sessionInfo?.Sessions?.[sessionNumber]?.SessionName || null;
-
-    if (sessionName === "RACE") {
+    if (sessionInfo?.Sessions?.[sessionNumber]?.SessionName === "RACE") {
       // If the flags are transitioning from caution waving to caution, emit pace start event
       if (flagHasCautionWaving(this.previousFlags) && flagHasCaution(flags)) {
         this.emit(CautionExtenderEvents.PaceStart);
