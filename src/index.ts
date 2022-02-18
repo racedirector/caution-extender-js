@@ -1,12 +1,12 @@
 import {
   iRacingSocket,
-  iRacingSocketEvents,
   iRacingSocketOptions,
+  iRacingSocketConsumer,
   Flags,
 } from "iracing-socket-js";
-import { EventEmitter } from "events";
+import { intersection, isEmpty } from "lodash";
 
-export const IRACING_REQUEST_PARAMS = [
+export const IRACING_REQUEST_PARAMS: string[] = [
   "SessionFlags",
   "SessionInfo",
   "SessionNum",
@@ -31,28 +31,23 @@ export interface CautionExtenderOptions {
   socket?: iRacingSocket | iRacingSocketOptions;
 }
 
-export class CautionExtender extends EventEmitter {
-  private socket: iRacingSocket;
-
+export class CautionExtender extends iRacingSocketConsumer {
   private previousFlags: number;
 
   constructor({ socket }: CautionExtenderOptions) {
-    super();
-
-    this.socket =
-      socket instanceof iRacingSocket ? socket : new iRacingSocket(socket);
-
-    this.socket.on(iRacingSocketEvents.Update, this.onUpdate);
+    super(socket);
   }
 
-  private onUpdate = () => {
+  onUpdate = (keys) => {
+    if (isEmpty(intersection(keys, ["SessionFlags", "SessionNum"]))) {
+      return;
+    }
+
     const {
-      data: {
-        SessionFlags: flags = -1,
-        SessionNum: sessionNumber = -1,
-        SessionInfo: sessionInfo = {},
-      } = {},
-    } = this.socket;
+      SessionFlags: flags = -1,
+      SessionNum: sessionNumber = -1,
+      SessionInfo: sessionInfo = {},
+    } = this.socket.data;
 
     if (sessionInfo?.Sessions?.[sessionNumber]?.SessionName === "RACE") {
       // If the flags are transitioning from caution waving to caution, emit pace start event

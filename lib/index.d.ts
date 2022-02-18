@@ -1,6 +1,4 @@
-/// <reference types="node" />
-import { iRacingSocket, iRacingSocketOptions } from "iracing-socket-js";
-import { EventEmitter } from "events";
+import { iRacingSocket, iRacingSocketOptions, iRacingSocketConsumer } from "iracing-socket-js";
 export declare const IRACING_REQUEST_PARAMS: string[];
 export declare enum CautionExtenderEvents {
     PaceStart = "paceStart",
@@ -9,10 +7,10 @@ export declare enum CautionExtenderEvents {
 export interface CautionExtenderOptions {
     socket?: iRacingSocket | iRacingSocketOptions;
 }
-export declare class CautionExtender extends EventEmitter {
-    private socket;
+export declare class CautionExtender extends iRacingSocketConsumer {
     private previousFlags;
+    private currentSessionNumber;
     constructor({ socket }: CautionExtenderOptions);
-    private onUpdate;
+    onUpdate: (keys: any) => void;
 }
 export default CautionExtender;

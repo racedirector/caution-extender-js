@@ -20,9 +20,9 @@
     "prettier": "prettier --write \"src/**/*.ts\"",
     "test": "jest"
   },
-  "dependencies": {
+  "peerDependencies": {
     "iracing-socket-js": "^0.0.5",
-    "lodash": "^4.17.21"
+    "lodash": "*"
   },
   "devDependencies": {
     "@types/jest": "^27.4.0",
@@ -36,6 +36,8 @@
     "eslint-config-prettier": "8.3.0",
     "eslint-plugin-import": "^2.25.4",
     "eslint-plugin-prettier": "^4.0.0",
+    "iracing-socket-js": "^0.0.5",
+    "lodash": "^4.17.21",
     "jest": "27.5.1",
     "prettier": "2.5.1",
     "prettier-eslint": "13.0.0",
