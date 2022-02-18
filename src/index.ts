@@ -3,6 +3,7 @@ import {
   iRacingSocketOptions,
   iRacingSocketConsumer,
   Flags,
+  flagsHasFlag,
 } from "iracing-socket-js";
 import { intersection, isEmpty } from "lodash";
 
@@ -18,14 +19,14 @@ export enum CautionExtenderEvents {
   Extension = "extension",
 }
 
-const flagHasCaution = (flagValue: number) =>
-  (flagValue & Flags.Caution) === Flags.Caution;
-const flagHasCautionWaving = (flagValue: number) =>
-  (flagValue & Flags.CautionWaving) === Flags.CautionWaving;
+const flagHasCaution = (flagValue: Flags) =>
+  flagsHasFlag(flagValue, Flags.Caution);
 
-const EXTENSION_REQUIRED_FLAGS = Flags.OneLapToGreen | Flags.Caution;
+const flagHasCautionWaving = (flagValue: Flags) =>
+  flagsHasFlag(flagValue, Flags.CautionWaving);
+
 const extensionRequired = (flagValue: number) =>
-  (flagValue & EXTENSION_REQUIRED_FLAGS) === EXTENSION_REQUIRED_FLAGS;
+  flagsHasFlag(flagValue, Flags.OneLapToGreen | Flags.Caution);
 
 export interface CautionExtenderOptions {
   socket?: iRacingSocket | iRacingSocketOptions;

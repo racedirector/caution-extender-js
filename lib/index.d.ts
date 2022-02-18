@@ -9,7 +9,6 @@ export interface CautionExtenderOptions {
 }
 export declare class CautionExtender extends iRacingSocketConsumer {
     private previousFlags;
-    private currentSessionNumber;
     constructor({ socket }: CautionExtenderOptions);
     onUpdate: (keys: any) => void;
 }
