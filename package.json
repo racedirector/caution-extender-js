@@ -21,7 +21,7 @@
     "test": "jest"
   },
   "peerDependencies": {
-    "iracing-socket-js": "^0.0.5",
+    "iracing-socket-js": "^0.0.6",
     "lodash": "*"
   },
   "devDependencies": {
